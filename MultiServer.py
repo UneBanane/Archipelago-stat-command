@@ -1375,6 +1375,21 @@ class ClientMessageProcessor(CommonCommandProcessor):
                     "Sorry, !remaining requires you to have beaten the game on this server")
                 return False
 
+    def _cmd_stat(self) -> bool:
+        """Use !stat,
+        Send the completion over the total checks with a completion percentage of all players to yourself"""
+        player_names = sorted(self.ctx.player_names.keys())
+        text = ''
+        for team, slot in player_names:
+            if self.ctx.slot_info[slot].type == SlotType.player:
+                player_name = self.ctx.player_names[team, slot]
+                checked = len(self.ctx.location_checks[(team, slot)])
+                total = len(self.ctx.locations[slot])
+                text += f"{player_name} => {checked} / {total} : {format((checked * 100) / total, '.1f')} % {'<==' if self.client.slot == slot else ''}\n"
+        self.output(text)
+    
+        return False
+
     @mark_raw
     def _cmd_missing(self, filter_text="") -> bool:
         """List all missing location checks from the server's perspective.
